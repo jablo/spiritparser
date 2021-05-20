@@ -154,14 +154,20 @@ bool parser(InputIterator &it, InputIterator end, AST::ObjectDef &objects) {
 int main(int, char *[]) {
   std::string input(R"V0G0N_POETRY(
 /*c1*/
-myobj /*c2*/ sometype /*c3*/ ( /*c4*/ attr /*c5*/: /*c6*/ 10.0 )
+myobj /*c2*/ sometype /*c3*/ ( /*c4*/ attr /*c5*/: /*c6*/ 10.0 /*c7*/)
 )V0G0N_POETRY");
   std::string::const_iterator it = input.cbegin();
   std::string::const_iterator end = input.end();
   AST::ObjectDef ast;
   const bool r = parser(it, end, ast);
 
-  // In ast, the comment /*c6*/ is present 2 times on node DoubleVal(10.0)
+  AST::ObjectDef expectedAst = AST::ObjectDef{
+      AST::Identifier{"myobj", AST::CommentMixin{{"/*c1*/"}}},
+      AST::Identifier{"sometype", AST::CommentMixin{{"/*c2*/"}}},
+      {AST::AttributeDef{
+          {AST::Identifier{"attr", AST::CommentMixin{{"/*c3*/", "/*c4*"}}}},
+          AST::AttributeValue{
+              AST::DoubleVal{AST::CommentMixin{{"/*c5*/", "/*c6*"}}, 10.0}}}}};
 
   if (r && it == end) {
     std::cout << "Parsing succeeded\n";
